@@ -9,10 +9,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { LatLng } from 'react-native-maps';
+
 
 import { UNIVERSITIES, UNIVERSITY_LIST, type University, type UniversityId } from '@/constants/universities';
-import { cellsAlong, HEX_RESOLUTION } from '@/lib/hexGrid';
+import { cellsAlong, HEX_RESOLUTION, type LatLng } from '@/lib/hexGrid';
 import { buildDemoRoute, DEMO_TICK_MS } from '@/lib/simulation';
 
 export const SWARM_DURATION_MS = 45_000;
@@ -61,15 +61,51 @@ const RIVAL_OUTPOSTS: { center: LatLng; rings: number }[] = [
   { center: { latitude: 41.4036, longitude: 2.1744 }, rings: 2 }, // Sagrada Família
 ];
 
-function seedRivalTerritory(player: UniversityId): Territory {
-  const rivals = UNIVERSITY_LIST.filter((u) => u.id !== player);
+/** Fake "season so far" territory around each campus so the leaderboard is alive from the start. */
+const CAMPUS_STRONGHOLDS: Record<UniversityId, { center: LatLng; rings: number }[]> = {
+  UB: [
+    { center: { latitude: 41.3866, longitude: 2.1641 }, rings: 3 }, // Plaça Universitat
+    { center: { latitude: 41.3843, longitude: 2.1176 }, rings: 3 }, // Zona Universitària
+  ],
+  UPC: [
+    { center: { latitude: 41.3893, longitude: 2.1124 }, rings: 3 }, // Campus Nord
+    { center: { latitude: 41.3763, longitude: 2.1875 }, rings: 2 }, // Barceloneta (Nautical)
+  ],
+  UPF: [
+    { center: { latitude: 41.3887, longitude: 2.1852 }, rings: 3 }, // Ciutadella
+    { center: { latitude: 41.4027, longitude: 2.1934 }, rings: 2 }, // Poblenou
+  ],
+  UAB: [
+    { center: { latitude: 41.3751, longitude: 2.1494 }, rings: 3 }, // Plaça Espanya
+    { center: { latitude: 41.4106, longitude: 2.1586 }, rings: 2 }, // Gràcia / Lesseps
+  ],
+};
+
+/** Points other students already scored this season (on top of 10 pts per hex). */
+const SEASON_BONUS_POINTS: Scores = { UB: 1_240, UPC: 1_180, UPF: 960, UAB: 870 };
+
+function paint(territory: Territory, owner: UniversityId, center: LatLng, rings: number) {
+  const origin = latLngToCell(center.latitude, center.longitude, HEX_RESOLUTION);
+  for (const cell of gridDisk(origin, rings)) territory[cell] = owner;
+}
+
+function seedDemoTerritory(player: UniversityId): Territory {
   const territory: Territory = {};
+  for (const u of UNIVERSITY_LIST) {
+    for (const s of CAMPUS_STRONGHOLDS[u.id]) paint(territory, u.id, s.center, s.rings);
+  }
+  const rivals = UNIVERSITY_LIST.filter((u) => u.id !== player);
   RIVAL_OUTPOSTS.forEach((outpost, i) => {
-    const owner = rivals[i % rivals.length].id;
-    const origin = latLngToCell(outpost.center.latitude, outpost.center.longitude, HEX_RESOLUTION);
-    for (const cell of gridDisk(origin, outpost.rings)) territory[cell] = owner;
+    paint(territory, rivals[i % rivals.length].id, outpost.center, outpost.rings);
   });
   return territory;
+}
+
+function seedDemoPoints(territory: Territory): Scores {
+  const counts = countHexes(territory);
+  const scores: Scores = { ...ZERO_SCORES };
+  for (const u of UNIVERSITY_LIST) scores[u.id] = counts[u.id] * 10 + SEASON_BONUS_POINTS[u.id];
+  return scores;
 }
 
 function countHexes(territory: Territory): Scores {
@@ -158,7 +194,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const stale = () => requestId !== gpsRequestId.current;
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      setLocationError('Permiso de ubicación denegado. Usa el modo simulación.');
+      setLocationError('Location permission denied. Use demo mode instead.');
       return;
     }
     try {
@@ -193,8 +229,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (simulationTimer.current) clearInterval(simulationTimer.current);
     simulationTimer.current = null;
     lastPositionRef.current = null;
+    setMode('idle');
     if (universityRef.current) void startGps();
-    else setMode('idle');
   }, [startGps]);
 
   const startSimulation = useCallback(() => {
@@ -221,8 +257,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     (id: UniversityId) => {
       universityRef.current = id;
       setUniversityId(id);
-      commitTerritory(seedRivalTerritory(id));
-      setPoints(ZERO_SCORES);
+      const seeded = seedDemoTerritory(id);
+      commitTerritory(seeded);
+      setPoints(seedDemoPoints(seeded));
       setTrack([]);
       setDistanceMeters(0);
       swarmUntilRef.current = null;

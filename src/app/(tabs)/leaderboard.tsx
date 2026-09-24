@@ -34,8 +34,8 @@ export default function LeaderboardScreen() {
       <UniRunBanner primary={theme.primary} neon={theme.neon} onPrimary={theme.onPrimary} />
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Clasificación por universidad</Text>
-        <Text style={styles.sectionMeta}>{totalHexes} hexágonos en juego</Text>
+        <Text style={styles.sectionTitle}>University ranking</Text>
+        <Text style={styles.sectionMeta}>{totalHexes} hexes in play</Text>
       </View>
 
       <View style={styles.list}>
@@ -61,7 +61,7 @@ export default function LeaderboardScreen() {
                   </Text>
                   {mine && (
                     <View style={[styles.youTag, { backgroundColor: team.primary }]}>
-                      <Text style={styles.youTagText}>TÚ</Text>
+                      <Text style={styles.youTagText}>YOU</Text>
                     </View>
                   )}
                 </View>
@@ -74,7 +74,7 @@ export default function LeaderboardScreen() {
                   />
                 </View>
                 <Text style={styles.rowMeta}>
-                  {team.hexes} hex · {share}% del mapa · {team.points.toLocaleString('es-ES')} pts
+                  {team.hexes} hex · {share}% of the map · {team.points.toLocaleString('en-US')} pts
                 </Text>
               </View>
             </View>
@@ -85,8 +85,8 @@ export default function LeaderboardScreen() {
       <View style={styles.rules}>
         <Ionicons name="information-circle" size={18} color={BASE.textMuted} />
         <Text style={styles.rulesText}>
-          Cada hexágono H3 (res. 10, ~66 m de lado) cuenta 1 punto de territorio. Corre con tu equipo
-          en modo Swarm para triplicar los puntos de conquista.
+          Every H3 hexagon (res. 10, ~66 m sides) counts as 1 territory point. Run with your team in
+          Swarm mode to triple conquest points.
         </Text>
       </View>
 
@@ -98,7 +98,7 @@ export default function LeaderboardScreen() {
         style={({ pressed }) => [styles.switchTeam, { opacity: pressed ? 0.6 : 1 }]}
       >
         <Ionicons name="swap-horizontal" size={16} color={theme.primary} />
-        <Text style={[styles.switchTeamText, { color: theme.primary }]}>Cambiar de universidad</Text>
+        <Text style={[styles.switchTeamText, { color: theme.primary }]}>Switch university</Text>
       </Pressable>
     </ScrollView>
   );

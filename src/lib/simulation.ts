@@ -1,6 +1,6 @@
-import type { LatLng } from 'react-native-maps';
 
-import { haversineMeters } from './hexGrid';
+
+import { haversineMeters, type LatLng } from './hexGrid';
 
 /** Plaça Catalunya → Passeig de Gràcia → Diagonal → Francesc Macià. */
 export const DEMO_WAYPOINTS: LatLng[] = [
