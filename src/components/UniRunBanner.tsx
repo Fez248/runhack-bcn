@@ -55,31 +55,31 @@ export function UniRunBanner({ primary, neon, onPrimary }: Props) {
       <View style={styles.headerRow}>
         <View style={[styles.tag, { backgroundColor: withAlpha('#FFFFFF', 0.18) }]}>
           <Ionicons name="flash" size={12} color={onPrimary} />
-          <Text style={[styles.tagText, { color: onPrimary }]}>GRAN FINAL</Text>
+          <Text style={[styles.tagText, { color: onPrimary }]}>GRAND FINAL</Text>
         </View>
         <Text style={[styles.date, { color: withAlpha(onPrimary, 0.85) }]}>
-          {UNIRUN_DATE.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} · 09:00
+          {UNIRUN_DATE.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · 09:00
         </Text>
       </View>
       <Text style={[styles.title, { color: onPrimary }]}>UniRun Barcelona</Text>
       <Text style={[styles.subtitle, { color: withAlpha(onPrimary, 0.9) }]}>
-        La temporada culmina en la carrera oficial de 5 km. Límite de tiempo: 1 hora. La universidad
-        con más hexágonos + mejores tiempos se corona campeona.
+        The season ends with the official 5 km race. Time limit: 1 hour. The university with the
+        most hexes + best finishing times is crowned champion.
       </Text>
 
       <View style={styles.countdown}>
-        <Unit value={days} label="días" color={onPrimary} neon={neon} />
+        <Unit value={days} label="days" color={onPrimary} neon={neon} />
         <Colon color={onPrimary} />
-        <Unit value={hours} label="horas" color={onPrimary} neon={neon} />
+        <Unit value={hours} label="hours" color={onPrimary} neon={neon} />
         <Colon color={onPrimary} />
         <Unit value={minutes} label="min" color={onPrimary} neon={neon} />
         <Colon color={onPrimary} />
-        <Unit value={seconds} label="seg" color={onPrimary} neon={neon} />
+        <Unit value={seconds} label="sec" color={onPrimary} neon={neon} />
       </View>
 
       <View style={styles.footerRow}>
         <Ionicons name="location" size={14} color={onPrimary} />
-        <Text style={[styles.footerText, { color: onPrimary }]}>Salida: Arc de Triomf</Text>
+        <Text style={[styles.footerText, { color: onPrimary }]}>Start: Arc de Triomf</Text>
         <View style={styles.dot} />
         <Ionicons name="timer" size={14} color={onPrimary} />
         <Text style={[styles.footerText, { color: onPrimary }]}>5 km · cut-off 60:00</Text>

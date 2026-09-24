@@ -28,12 +28,12 @@ export default function TeamSelectionScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={[styles.badge, { backgroundColor: withAlpha(accent, 0.12) }]}>
           <Ionicons name="flag" size={16} color={accent} />
-          <Text style={[styles.badgeText, { color: accent }]}>Temporada 1 · Barcelona</Text>
+          <Text style={[styles.badgeText, { color: accent }]}>Season 1 · Barcelona</Text>
         </View>
         <Text style={styles.title}>Campus{'\n'}Conquerors</Text>
         <Text style={styles.subtitle}>
-          Elige tu facción. Corre por la ciudad, despeja la niebla y pinta las calles con el color de
-          tu universidad.
+          Pick your faction. Run through the city, clear the fog and paint the streets in your
+          university’s color.
         </Text>
 
         <View style={styles.grid}>
@@ -76,7 +76,7 @@ export default function TeamSelectionScreen() {
           ]}
         >
           <Text style={styles.ctaText}>
-            {selected ? `Representar a la ${selected.shortName}` : 'Selecciona una universidad'}
+            {selected ? `Run for ${selected.shortName}` : 'Choose a university'}
           </Text>
           <Ionicons name="arrow-forward" size={18} color="#fff" />
         </Pressable>

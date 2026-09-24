@@ -1,35 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useKeepAwake } from 'expo-keep-awake';
-import React, { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
+import React, { useCallback, useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HexLayer } from '@/components/HexLayer';
+import { LeafletMap } from '@/components/LeafletMap';
 import { SwarmButton } from '@/components/SwarmButton';
 import { BASE, withAlpha } from '@/constants/universities';
 import { useGame, useTheme } from '@/context/GameContext';
 import { BARCELONA_CENTER } from '@/lib/simulation';
-
-const LIGHT_MAP_STYLE = [
-  { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
-  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#f5f5f5' }] },
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e5e5e5' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-  { featureType: 'road.arterial', elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#dadada' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9d6df' }] },
-];
-
-const INITIAL_REGION: Region = {
-  ...BARCELONA_CENTER,
-  latitudeDelta: 0.025,
-  longitudeDelta: 0.02,
-};
 
 export default function MapScreen() {
   useKeepAwake();
@@ -53,8 +32,8 @@ export default function MapScreen() {
     stopSimulation,
   } = useGame();
 
-  const mapRef = useRef<MapView>(null);
   const [follow, setFollow] = useState(true);
+  const onUserPan = useCallback(() => setFollow(false), []);
   const secretTaps = useRef<number[]>([]);
   const [simulatorUnlocked, setSimulatorUnlocked] = useState(false);
 
@@ -67,11 +46,6 @@ export default function MapScreen() {
     }
   };
 
-  useEffect(() => {
-    if (!position || !follow) return;
-    mapRef.current?.animateCamera({ center: position, zoom: 16 }, { duration: 600 });
-  }, [position, follow]);
-
   if (!university) return null;
 
   const myHexes = hexCount[university.id];
@@ -79,31 +53,16 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <MapView
-        ref={mapRef}
-        style={StyleSheet.absoluteFill}
-        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        initialRegion={INITIAL_REGION}
-        customMapStyle={LIGHT_MAP_STYLE}
-        showsUserLocation={mode === 'gps'}
-        showsMyLocationButton={false}
-        showsCompass={false}
-        toolbarEnabled={false}
-        onPanDrag={() => setFollow(false)}
-        mapPadding={{ top: insets.top + 96, right: 0, bottom: 0, left: 0 }}
-      >
-        <HexLayer territory={territory} position={position} />
-        {track.length > 1 && (
-          <Polyline coordinates={track} strokeColor={theme.primary} strokeWidth={4} />
-        )}
-        {position && mode === 'simulation' && (
-          <Marker coordinate={position} anchor={{ x: 0.5, y: 0.5 }} flat>
-            <View style={[styles.runnerDot, { borderColor: theme.primary }]}>
-              <View style={[styles.runnerCore, { backgroundColor: theme.primary }]} />
-            </View>
-          </Marker>
-        )}
-      </MapView>
+      <LeafletMap
+        territory={territory}
+        position={position}
+        track={track}
+        accent={theme.primary}
+        follow={follow}
+        showRunner={mode !== 'idle'}
+        initialCenter={BARCELONA_CENTER}
+        onUserPan={onUserPan}
+      />
 
       {/* Header / HUD */}
       <View style={[styles.hud, { top: insets.top + 12 }]}>
@@ -111,11 +70,11 @@ export default function MapScreen() {
           <Text style={styles.brandText}>{university.shortName}</Text>
         </Pressable>
         <View style={styles.statsCard}>
-          <Stat label="Hexágonos" value={String(myHexes)} color={theme.primary} />
+          <Stat label="Hexes" value={String(myHexes)} color={theme.primary} />
           <View style={styles.divider} />
-          <Stat label="Puntos" value={myPoints.toLocaleString('es-ES')} color={theme.primary} />
+          <Stat label="Points" value={myPoints.toLocaleString('en-US')} color={theme.primary} />
           <View style={styles.divider} />
-          <Stat label="Distancia" value={`${(distanceMeters / 1000).toFixed(2)} km`} color={theme.primary} />
+          <Stat label="Distance" value={`${(distanceMeters / 1000).toFixed(2)} km`} color={theme.primary} />
         </View>
       </View>
 
@@ -123,7 +82,7 @@ export default function MapScreen() {
         <View style={[styles.swarmBanner, { top: insets.top + 96, backgroundColor: theme.primary }]}>
           <Ionicons name="people" size={16} color={theme.onPrimary} />
           <Text style={[styles.swarmBannerText, { color: theme.onPrimary }]}>
-            SWARM ×{multiplier} · {swarmSecondsLeft}s · 4 estudiantes de la {university.shortName} corren contigo
+            SWARM ×{multiplier} · {swarmSecondsLeft}s · 4 {university.shortName} runners with you
           </Text>
         </View>
       )}
@@ -138,7 +97,7 @@ export default function MapScreen() {
       {mode === 'simulation' && (
         <View style={[styles.simPill, { top: insets.top + (swarmActive ? 140 : 96), borderColor: theme.primary }]}>
           <View style={[styles.liveDot, { backgroundColor: theme.primary }]} />
-          <Text style={[styles.simPillText, { color: theme.primary }]}>SIMULACIÓN · Pg. de Gràcia → Diagonal</Text>
+          <Text style={[styles.simPillText, { color: theme.primary }]}>DEMO RUN · Pg. de Gràcia → Diagonal</Text>
           <Pressable onPress={stopSimulation} hitSlop={8}>
             <Ionicons name="close-circle" size={18} color={theme.primary} />
           </Pressable>
@@ -160,10 +119,7 @@ export default function MapScreen() {
           </Pressable>
         )}
         <Pressable
-          onPress={() => {
-            setFollow(true);
-            if (position) mapRef.current?.animateCamera({ center: position, zoom: 16 }, { duration: 500 });
-          }}
+          onPress={() => setFollow(true)}
           style={({ pressed }) => [styles.roundButton, { opacity: pressed ? 0.8 : 1 }]}
         >
           <Ionicons name="locate" size={22} color={follow ? theme.primary : BASE.textMuted} />
@@ -178,7 +134,7 @@ export default function MapScreen() {
 
       {!simulatorUnlocked && (
         <Text style={[styles.hint, { bottom: 12 + insets.bottom }]}>
-          Toca 5 veces el escudo para el modo demo
+          Tap the badge 5× for demo mode
         </Text>
       )}
     </View>
@@ -301,14 +257,4 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  runnerDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 3,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  runnerCore: { width: 10, height: 10, borderRadius: 5 },
 });

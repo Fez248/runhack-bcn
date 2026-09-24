@@ -1,5 +1,5 @@
 import { cellToBoundary, gridDisk, latLngToCell } from 'h3-js';
-import type { LatLng } from 'react-native-maps';
+export type LatLng = { latitude: number; longitude: number };
 
 /**
  * H3 resolution 10 → hexagons with ~66 m edges (~15 000 m²), a good size for

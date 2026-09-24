@@ -1,62 +1,82 @@
 # Campus Conquerors
 
-Juego de running gamificado para estudiantes universitarios de Barcelona. Elige tu
-universidad (UB, UPC, UPF o UAB), sal a correr y pinta la ciudad con tu color: cada
-hexágono H3 que atraviesas se conquista para tu facción y la niebla de guerra se despeja.
+Gamified running game for university students in Barcelona. Pick your university
+(UB, UPC, UPF or UAB), go for a run and paint the city in your color: every H3 hexagon you
+cross is conquered for your faction and the fog of war clears around you.
 
-Construido con **React Native + Expo** (SDK 57), `react-native-maps` (Google Maps en
-Android), `expo-location` y `h3-js`. Todo el estado es local — sin backend — para que la
-demo funcione al instante.
+Built with **React Native + Expo** (SDK 57), **OpenStreetMap** tiles rendered with Leaflet
+inside a WebView (no Google Maps API key needed — works in Expo Go), `expo-location` and
+`h3-js`. All state is local — no backend — so the demo works instantly.
 
-## Ejecutar en Android con Expo Go
+## Test it on your Android phone (Expo Go)
+
+1. Install **Expo Go** from the Play Store on your phone.
+2. On your computer:
+
+   ```bash
+   npm install
+   npx expo start --tunnel
+   ```
+
+   `--tunnel` makes it work even if the phone and laptop are on different Wi-Fi networks
+   (e.g. phone on 4G). If both are on the same Wi-Fi you can drop the flag.
+3. Open Expo Go and scan the QR code shown in the terminal (or use the camera app).
+4. Allow location access when prompted. Pick a university and start walking — or use
+   demo mode below.
+
+The phone needs internet access to load the OpenStreetMap tiles.
+
+### Standalone APK (no laptop needed)
 
 ```bash
-npm install
-npx expo start
+npx eas-cli@latest build --platform android --profile preview
 ```
 
-Escanea el QR con la app **Expo Go** en tu Android. Concede el permiso de ubicación
-cuando se solicite.
+Requires a free Expo account. EAS produces an installable `.apk` link you can open on
+the phone directly.
 
-## Demo para el jurado (modo simulador)
+## Hackathon demo (simulator mode)
 
-En la pantalla del mapa, **toca 5 veces seguidas el escudo de tu universidad** (arriba a
-la izquierda). Aparecerá un botón ▶ que ignora el GPS e inyecta una carrera por
-Plaça Catalunya → Passeig de Gràcia → Diagonal → Francesc Macià, pintando hexágonos en
-vivo y sobrescribiendo los puestos rivales por el camino. Pulsa ■ o la X del
-indicador "SIMULACIÓN" para volver al GPS real.
+On the map screen, **tap your university badge 5 times quickly** (top-left). A ▶ button
+appears that ignores real GPS and injects a run along Plaça Catalunya → Passeig de Gràcia →
+Diagonal → Francesc Macià, painting hexes live and overwriting rival outposts on the way.
+Press ■ or the X on the "DEMO RUN" pill to return to real GPS.
+
+The game starts pre-seeded with fake season data: campus strongholds for every university
+(Plaça Universitat, Campus Nord, Ciutadella, Plaça Espanya, …), rival outposts along the
+demo route and season points, so the leaderboard is alive from the first second.
 
 ## Features
 
-- **Selección de facción**: la UI entera (botones, tab bar, acentos, trazo) se re-pinta con
-  el color de la universidad elegida.
-- **Turf War**: tracking GPS real con `expo-location`; los hexágonos H3 (res. 10, ~66 m)
-  cruzados pasan a ser tuyos. Los territorios rivales se sobrescriben.
-- **Niebla de guerra**: hexágonos inexplorados alrededor del corredor renderizados como
-  cristal esmerilado blanco semitransparente; los conquistados en neón translúcido.
-- **Swarm ×3**: botón flotante que simula compañeros corriendo contigo y triplica los
-  puntos de conquista durante 45 s.
-- **Ranking + Gran Final UniRun**: clasificación UB/UPC/UPF/UAB por hexágonos y banner
-  con cuenta atrás al evento oficial de 5 km (límite 1 h).
+- **Faction select**: the whole UI (buttons, tab bar, accents, track) re-themes to the
+  chosen university color.
+- **Turf War**: real GPS tracking with `expo-location`; H3 hexagons (res. 10, ~66 m)
+  you cross become yours. Rival territory gets overwritten.
+- **Fog of war**: unexplored hexes around the runner rendered as translucent frosted
+  white glass; conquered ones in translucent neon.
+- **Swarm ×3**: floating button that simulates teammates running with you and triples
+  conquest points for 45 s.
+- **Ranking + UniRun Grand Final**: UB/UPC/UPF/UAB standings by hexes and a countdown
+  banner to the official 5 km race (1 h cut-off).
 
-## Estructura
+## Structure
 
 ```
 src/
-  app/                 # rutas Expo Router
+  app/                 # Expo Router routes
     _layout.tsx        # GameProvider + Stack
-    index.tsx          # onboarding / selección de universidad
+    index.tsx          # onboarding / university selection
     (tabs)/            # bottom tabs: map, leaderboard
-  components/          # HexLayer, SwarmButton, UniRunBanner
-  context/             # GameContext: facción, territorio, GPS, simulador, swarm
-  constants/           # universidades y paleta
-  lib/                 # helpers H3 y ruta de simulación
+  components/          # LeafletMap (OSM + hex overlays), SwarmButton, UniRunBanner
+  context/             # GameContext: faction, territory, GPS, simulator, swarm, seeded demo data
+  constants/           # universities & palette
+  lib/                 # H3 helpers, demo route, Hermes polyfills
 ```
 
-## Comandos
+## Commands
 
 ```bash
 npm run lint       # expo lint
 npm run typecheck  # tsc --noEmit
-npx expo-doctor    # comprobar dependencias
+npx expo-doctor    # check dependencies
 ```
