@@ -41,15 +41,16 @@ const HTML = `<!DOCTYPE html><html><head>
 <style>
   html,body,#map{margin:0;height:100%;width:100%;background:${BASE.background};}
   .leaflet-control-attribution{font-size:9px;opacity:.75}
+  .osm{filter:saturate(.35) brightness(1.06)}
   .runner{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 0 0 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
   .runner::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent)}
 </style></head><body><div id="map"></div>
 <script>
 (function(){
   var map = L.map('map',{zoomControl:false,attributionControl:true,preferCanvas:true}).setView([__LAT__,__LNG__],15);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
-    maxZoom:19,subdomains:'abcd',
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,className:'osm',
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
   var fogLayer = L.layerGroup().addTo(map);
   var hexLayer = L.layerGroup().addTo(map);
